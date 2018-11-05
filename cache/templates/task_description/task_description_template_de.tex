@@ -58,12 +58,12 @@ Ver\"andern Sie die Datei "`cache.vhdl"' nicht!\\
 
 
 
-Ziel dieser Aufgabe ist es, die Leseeinheit eines \textit{direct mapped} Caches zu programmieren. Abh\"angig von der angelegten Adresse am Adresseingang \textit{addr} des Caches soll dieser durchsucht und bei einem \textit{cache hit} der Speicherinhalt ausgegeben werden. Bei einem \textit{direct mapped} Cache ist die Position eines Datums im Cache eindeutig \"uber die Adresse definiert. Umfasst der Cache M Eintr\"age, so werden N = log2(M) Bits der Adresse f\"ur die Positionbestimmung (Index) im Cache ben\"otigt und die restlichen Bits der Adresse als \textit{Tag} zu dem Datum im Cache dazugespeichert. Bei der \"Uberpr\"ufung, ob ein Datum im Cache vorhanden ist, muss also zun\"achst die Position im Cache anhand eines Teilst\"ucks der Adresse ermittelt und anschlie{\ss}end der gespeicherte Tag mit dem zweiten Adressteil verglichen werden. Nur wenn dieser \"ubereinstimmt, liegt ein \textit{cache hit} vor. Abbildung \ref{img_cache} verdeutlicht das Prinzip eines \textit{direct mapped} Caches. \\
+Ziel dieser Aufgabe ist es, die Leseeinheit eines \textit{direct mapped} Caches zu programmieren. Abh\"angig von der angelegten Adresse am Adresseingang \textit{addr} des Caches soll dieser durchsucht und bei einem \textit{cache hit} der Speicherinhalt ausgegeben werden. Bei einem \textit{direct mapped} Cache ist die Position eines Datums im Cache eindeutig \"uber die Adresse definiert. Umfasst der Cache M Eintr\"age, so werden N = $\lceil log_2(M) \rceil$ Bits der Adresse f\"ur die Positionbestimmung (=Index) im Cache ben\"otigt und die restlichen Bits der Adresse als \textit{Tag} zu dem Datum im Cache dazugespeichert. Bei der \"Uberpr\"ufung, ob ein Datum im Cache vorhanden ist, muss also zun\"achst die Position im Cache anhand eines Teilst\"ucks der Adresse ermittelt und anschlie{\ss}end der gespeicherte Tag mit dem zweiten Adressteil verglichen werden. Wenn dieser \"ubereinstimmt, liegt ein \textit{cache hit} vor. Abbildung \ref{img_cache} verdeutlicht das Prinzip eines \textit{direct mapped} Caches. \\
 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=0.75\textwidth]{../static/cache.pdf}
-\caption{Prinzip des Lesezugriffs bei einem \textit{direct mapped} Caches. (Dies ist eine exemplarische Darstellung, die Bitbreiten stehen in keinem Zusammenhang zu Ihrer Angabe.)}
+\caption{Prinzipdarstellung des Lesezugriffs bei einem \textit{direct mapped} Cache. Dargestellt sind jeweils ein Beispiel f\"ur einen \textit{cache hit} (a) und einen \textit{cache miss} (b).\newline (Achtung: Die in dieser Darstellung verwendeten Bitbreiten stimmen nicht notwendigerweise mit jener aus Ihrer Angabe \"uberein.)}
 \label{img_cache}
 \end{center}
 \end{figure}
@@ -78,7 +78,7 @@ fallender
 {% else %}
 steigender
 {% endif %}
- Flanke des Takteinganges \textit{clk} arbeiten. D.h. die Ausg\"ange d\"urfen sich nur bei einer
+ Flanke des Takteinganges \textit{clk} arbeiten, d.h. die Ausg\"ange d\"urfen sich nur bei einer
 {% if clock_polarity == "1" %}
 fallenden
 {% else %}
@@ -88,9 +88,9 @@ steigenden
 
 \item Ein Zugriff auf den Cache erfolgt nur, wenn \textit{en\_read} gleich '1' ist, anderenfalls soll der Ausgang \textit{data} immer hochomig (High Impedance = 'Z') sein und das Flag \textit{ch\_cm} immer '0' liefern.
 
-\item Die im Cache gespeicherten {{cache_size}} Daten und deren Tags sind in Tabelle \ref{tab_cachedata} vorgegeben und sollen von Ihnen konstant eingespeichert werden. (Diese w\"urden von einer Schreibe-Einheit entsprechend beschrieben werden).
+\item Die im Cache gespeicherten {{cache_size}} Daten und deren Tags sind in Tabelle \ref{tab_cachedata} vorgegeben und sollen von Ihnen als konstanter Inhalt in Ihren Cache programmiert werden. (Diese w\"urden von einer Schreibe-Einheit entsprechend beschrieben werden).
 
-\item Erfolgt ein Lesezugriff (\textit{en\_read} = '1'), so soll aus der Adresse \textit{addr} die m\"ogliche  Position des Datum im Cache (Cache-Index) und der zugeh\"orige Tag ermittelt werden. Kommt es dabei zu einem \textit{cache hit}, so soll das Datum dieser Adresse am Ausgang \textit{data} ausgegeben werden und das Flag \textit{ch\_cm} auf '1' gesetzt werden. Kommt es zu einem \textit{chache miss}, so soll der Ausgang \textit{data}  hochomig (High Impedance = 'Z') sein und das Flag \textit{ch\_cm} '0' liefern. 
+\item Erfolgt ein Lesezugriff (\textit{en\_read} = '1'), so soll aus der Adresse \textit{addr} die m\"ogliche  Position des Datums im Cache (=Index) und der zugeh\"orige Tag ermittelt werden. Kommt es dabei zu einem \textit{cache hit}, so soll das Datum dieser Adresse am Ausgang \textit{data} ausgegeben werden und das Flag \textit{ch\_cm} auf '1' gesetzt werden. Kommt es zu einem \textit{cache miss}, so soll der Ausgang \textit{data}  hochomig (High Impedance = 'Z') sein und das Flag \textit{ch\_cm} '0' liefern. 
 
 \item Ist bei einem Lesezugriff der Cache-Index der Adresse gr\"o{\ss}er als die Speichertiefe des Caches, so soll ebenfalls der Ausgang \textit{data}  hochomig (High Impedance = 'Z') sein und das Flag \textit{ch\_cm} '0' liefern. 
 
