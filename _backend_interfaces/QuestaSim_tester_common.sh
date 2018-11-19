@@ -54,23 +54,6 @@ function generate_testbench {
 	#generate the testbench and move testbench to user's folder
 	python3 scripts/generateTestBench.py "$task_params" > $user_task_path/$testbench
 
-	#------ SAVE USED TESTBENCH  ------ #
-
-	#  create directory for used testbenches if it does not exist
-	if [ ! -d "$user_task_path/used_tbs" ]
-	then
-		mkdir $user_task_path/used_tbs
-	fi
-
-	#find last submission number
-	submission_nrs=($(ls $user_task_path | grep -oP '(?<=Submission)[0-9]+' | sort -nr))
-	submission_nr_last=${submission_nrs[0]}
-
-	#copy used testbench
-	src=$user_task_path/$testbench
-	tgt=$user_task_path/used_tbs/${task_name}_tb_${user_id}_Task${task_nr}_Submission${submission_nr_last}.vhdl
-
-	cp $src $tgt
 }
 
 function desccp {
@@ -106,7 +89,7 @@ function prepare_test {
 		then
 			echo "Error with task ${task_nr}. User ${user_id} did not attach the right file."
 			echo "You did not attach your solution. Please attach the file $userfile" > error_msg
-			exit $FAILURE
+			exit_and_save_results $FAILURE
 		fi
 
 		# delete comments from the file to allow checks like looking for 'wait'
@@ -155,7 +138,7 @@ function taskfiles_analyze {
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename" 1>&2
 			cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2 
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename"
-			exit $TASKERROR
+			exit_and_save_results $TASKERROR
 		fi
 	done
 
@@ -168,7 +151,7 @@ function taskfiles_analyze {
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename" 1>&2
 			cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2 
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename"
-			exit $TASKERROR
+			exit_and_save_results $TASKERROR
 		fi
 	done
 
@@ -179,7 +162,7 @@ function taskfiles_analyze {
 		echo "Error with task ${task_nr} for user ${user_id} while analyzing the testbench" 1>&2
 		cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2 
 		echo "Error with task ${task_nr} for user ${user_id} while analyzing the testbench"
-		exit $TASKERROR
+		exit_and_save_results $TASKERROR
 	fi
 
 	rm -f /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt
@@ -215,7 +198,7 @@ function userfiles_analyze {
 			#cat /tmp/$USER/tmp_Task${task_nr}_User${user_id} >> error_msg
 			#########################################################################
 
-			exit $FAILURE
+			exit_and_save_results $FAILURE
 		fi
 	done
 
@@ -257,7 +240,7 @@ function simulate {
 		#cat vsim.log >> error_msg
 		#########################################################################
 
-		exit $FAILURE
+		exit_and_save_results $FAILURE
 	fi
 
 	# check if simulation reported "Success":
@@ -266,7 +249,7 @@ function simulate {
 	if [ "$RET_success" -eq "$zero" ]
 	then
 		echo "Functionally correct for task${task_nr} for user ${user_id}!"
-		exit $SUCCESS
+		exit_and_save_results $SUCCESS
 	fi
 
 	# attach wave file:
@@ -301,7 +284,7 @@ function simulate {
 		#cat vsim.log >> error_msg
 		#########################################################################
 
-		exit $FAILURE
+		exit_and_save_results $FAILURE
 	fi
 
 	# check for the error message from the testbench:
@@ -333,11 +316,58 @@ function simulate {
 		#cat vsim.log >> error_msg
 		#########################################################################
 
-		exit $FAILURE
+		exit_and_save_results $FAILURE
 	fi
 
 	# catch unhandled errors:
 	echo "Unhandled error for task ${task_nr} for user ${user_id}!"
 	echo "Your submitted behavior file does not behave like specified in the task description." > error_msg
-	exit $FAILURE
+	exit_and_save_results $FAILURE
+}
+
+# before exiting the simulation, first copy all relevant simulation files to the submission folder
+function exit_and_save_results {
+
+	# find last submission number
+	submission_nrs=($(ls $user_task_path | grep -oP '(?<=Submission)[0-9]+' | sort -nr))
+	submission_nr_last=${submission_nrs[0]}
+	
+	# jump into last submission folder and get the correct name (name includes time, which is unknown to this script)
+	cd $user_task_path/Submission${submission_nr_last}_*
+	user_submission_path="$user_task_path/${PWD##*/}"
+	
+	# create subfolder test_results
+	if [ ! -d "test_results" ]
+	then
+		mkdir test_results
+	fi
+	
+	# jump back to user task path
+	cd $user_task_path
+	
+	#copy error message into task_results folder
+	if [ -f $user_task_path/error_msg ]
+	then
+		src=$user_task_path/error_msg
+		tgt=$user_submission_path/test_results
+		cp $src $tgt
+	fi
+	
+	#copy testbench into task_results folder
+	if [ -f $user_task_path/$testbench ]
+	then
+		src=$user_task_path/$testbench
+		tgt=$user_submission_path/test_results/${task_name}_tb_${user_id}_Task${task_nr}.vhdl
+		cp $src $tgt
+	fi
+	
+	#copy vsim log into task_results folder
+	if [ -f $user_task_path/vsim.log ]
+	then
+		src=$user_task_path/vsim.log
+		tgt=$user_submission_path/test_results/vsim.log
+		cp $src $tgt
+	fi
+	
+	exit $1
 }
