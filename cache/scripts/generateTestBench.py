@@ -43,7 +43,7 @@ hash_value2 = hashlib.sha256((hash_str+str(data_length)+str(clock_polarity)).enc
 
 for cnt in range(cache_size):
     tmp1=bin(int(hash_value1[(2*cnt):(2*cnt+2)],16))[2:].zfill(tag_length)
-    tmp2=bin(int(hash_value2[(2*cnt):(2*cnt+2)],16))[2:].zfill(addr_length)
+    tmp2=bin(int(hash_value2[(2*cnt):(2*cnt+2)],16))[2:].zfill(data_length)
   
     tag_values.append(tmp1[0:tag_length])
     data_values.append(tmp2[0:data_length])
