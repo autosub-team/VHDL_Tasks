@@ -8,6 +8,7 @@ from jinja2 import FileSystemLoader, Environment
 #################################################################
 
 x=sys.argv[1]
+random_tag=sys.argv[2]
 a,b,c,d,f,g=x
 taskParameters=[int(a),int(b),int(c),int(d),int(f),int(g)]
 
@@ -156,7 +157,7 @@ result_carry=("\n"+(20)*" ").join(result_carry)
 params.update({"RESULT1":result_add,"FLAG":result_flag,"RESULT2":result_shift,
                "CARRY":result_carry,"INST1":inst_name[taskParameters[0]],
                "INST2":inst_name[taskParameters[1]],"INST3":inst_name[taskParameters[2]],
-               "INST4":inst_name[taskParameters[3]]})
+               "INST4":inst_name[taskParameters[3]],"random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

@@ -44,6 +44,8 @@ def generate_test_vectors(n, N):
 params={}
 
 task_parameters=sys.argv[1]
+random_tag=sys.argv[2]
+
 counter_width, init_value, synchronous_function, asynchronous_function, enable, overflow, constant_value = task_parameters.split('|')
 counter_width = int(counter_width)
 synchronous_function = int(synchronous_function)
@@ -90,7 +92,7 @@ params.update({"enable":enable, "sync_variation":sync_variation, \
     "random_counter_value":random_counter_value, "init_value":init_value, \
     "counter_width":counter_width, "counter_max":counter_max, \
     "input_test_array":input_test_array, "constant_value":constant_value, \
-    "constant_value_bin":str(int(constant_value, 2))})
+    "constant_value_bin":str(int(constant_value, 2)),"random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

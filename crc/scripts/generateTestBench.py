@@ -18,6 +18,7 @@ from jinja2 import FileSystemLoader, Environment
 #################################################################
 
 taskParameters=sys.argv[1]
+random_tag=sys.argv[2]
 params={}
 
 
@@ -48,7 +49,7 @@ testPattern=("\n"+12*" ").join(testVectors) #format and join
 ##########################################
 ## SET PARAMETERS FOR TESTBENCH TEMPLATE #
 ##########################################
-params.update({"CRCWIDTH":crcWidth,"MSGLEN":msgLen,"TESTPATTERN":testPattern})
+params.update({"CRCWIDTH":crcWidth,"MSGLEN":msgLen,"TESTPATTERN":testPattern,"random_tag":random_tag})
 
 ############################
 ## FILL TESTBENCH TEMPLATE #

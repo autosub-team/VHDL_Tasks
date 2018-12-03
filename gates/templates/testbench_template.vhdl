@@ -78,7 +78,7 @@ begin
                 exit;
             end if;
         end loop;
-        report "Success";
+        report "Success_{{random_tag}}";
         wait;
     end process;
 

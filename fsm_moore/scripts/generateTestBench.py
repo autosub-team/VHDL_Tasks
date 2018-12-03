@@ -59,6 +59,7 @@ def wayToNode (node):
 #################################################################
 
 taskParameters=sys.argv[1]
+random_tag=sys.argv[2]
 params={}
 
 #########################################
@@ -146,7 +147,7 @@ testPattern=("\n"+12*" ").join(testVectors) #format in testbench, join
 #########################################
 # SET PARAMETERS FOR TESTBENCH TEMPLATE # 
 #########################################
-params.update({"TESTPATTERN":testPattern, "num_states" : numNodes})
+params.update({"TESTPATTERN":testPattern, "num_states" : numNodes,"random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

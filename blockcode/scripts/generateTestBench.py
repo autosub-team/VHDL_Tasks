@@ -29,6 +29,7 @@ class CycleValues(object):
 #################################################################
 
 task_parameters=sys.argv[1]
+random_tag=sys.argv[2]
 
 n, k, chosen_parities = task_parameters.split('|')
 chosen_parities = eval(chosen_parities)
@@ -176,7 +177,7 @@ test_pattern=("\n" + 2*"\t").join(test_vectors) #format and join
 ##########################################
 ## SET PARAMETERS FOR TESTBENCH TEMPLATE #
 ##########################################
-params.update({"DATALEN":k, "CODELEN":n, "TESTPATTERN": test_pattern})
+params.update({"DATALEN":k, "CODELEN":n, "TESTPATTERN": test_pattern,"random_tag":random_tag})
 
 ############################
 ## FILL TESTBENCH TEMPLATE #

@@ -17,6 +17,7 @@ from jinja2 import FileSystemLoader, Environment
 #################################################################
 
 taskParameters=int(sys.argv[1])
+random_tag=sys.argv[2]
 params={}
 
 simCycles = random.randrange(5,30)
@@ -26,7 +27,7 @@ dutyClks = taskParameters & (2**18-1)
 #########################################
 # SET PARAMETERS FOR TESTBENCH TEMPLATE #
 #########################################
-params.update({"PERIODCLKS":periodClks,"DUTYCLKS":dutyClks,"SIMCYCLES":simCycles})
+params.update({"random_tag":random_tag,"PERIODCLKS":periodClks,"DUTYCLKS":dutyClks,"SIMCYCLES":simCycles})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

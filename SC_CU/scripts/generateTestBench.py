@@ -23,6 +23,7 @@ sel_Controls=[]
 sel_Strings =[]
 
 taskParameters=sys.argv[1]
+random_tag=sys.argv[2]
 In_1, In_2, In_3, In_4 = taskParameters.split('|')
 
 In_1 = int(In_1)
@@ -156,7 +157,7 @@ TestPattern_strings=("\n"+2*"\t").join(sel_Strings)
 #########################################
 # SET PARAMETERS FOR TESTBENCH TEMPLATE #
 #########################################
-params.update({"TESTPATTERN_INPUTS":TestPattern_inputs, "TESTPATTERN_CONTROLS":TestPattern_controls, "TESTPATTERN_STRINGS":TestPattern_strings, "ARRAY_SIZE":array_size})
+params.update({"TESTPATTERN_INPUTS":TestPattern_inputs, "TESTPATTERN_CONTROLS":TestPattern_controls, "TESTPATTERN_STRINGS":TestPattern_strings, "ARRAY_SIZE":array_size,"random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

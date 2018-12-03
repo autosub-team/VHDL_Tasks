@@ -40,6 +40,7 @@ def generate_test_vectors(n, N):
 params={}
 
 taskParameters=sys.argv[1]
+random_tag=sys.argv[2]
 n, N_n, special_reg0_size, n_bypass_or_read_priority, reg0_bypass_or_read_priority = taskParameters.split('|')
 
 n = int(n)
@@ -72,7 +73,7 @@ address_test_array = (', '.join('\n\t\t"' + x + '"' for x in address_test_array)
 #########################################
 # SET PARAMETERS FOR TESTBENCH TEMPLATE #
 #########################################
-params.update({"n":n, "address_width_n":address_width_n, "N_n":N_n, "address_width_reg0":address_width_reg0, "special_reg0_size":special_reg0_size, "address_array_size":address_array_size, "address_array_width":address_array_width, "address_test_array":address_test_array, "data_n_test_array":data_n_test_array, "reg0_test_vector_1":reg0_test_vector_1, "reg0_test_vector_2":reg0_test_vector_2, "n_bypass_or_read_priority":n_bypass_or_read_priority, "reg0_bypass_or_read_priority":reg0_bypass_or_read_priority })
+params.update({"n":n, "address_width_n":address_width_n, "N_n":N_n, "address_width_reg0":address_width_reg0, "special_reg0_size":special_reg0_size, "address_array_size":address_array_size, "address_array_width":address_array_width, "address_test_array":address_test_array, "data_n_test_array":data_n_test_array, "reg0_test_vector_1":reg0_test_vector_1, "reg0_test_vector_2":reg0_test_vector_2, "n_bypass_or_read_priority":n_bypass_or_read_priority, "reg0_bypass_or_read_priority":reg0_bypass_or_read_priority,"random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

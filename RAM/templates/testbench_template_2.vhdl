@@ -491,7 +491,7 @@ begin
     end loop;
 
 
-     report "Success" severity failure;
+     report "Success_{{random_tag}}" severity failure;
 
    end process;
 

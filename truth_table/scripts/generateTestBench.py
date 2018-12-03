@@ -7,6 +7,7 @@ from jinja2 import FileSystemLoader, Environment
 #################################################################
 
 taskParameter=int(sys.argv[1])
+random_tag=sys.argv[2]
 params={}
 
 y=bin(taskParameter)
@@ -49,7 +50,7 @@ testPattern=("\n"+12*" ").join(v)
 #########################################
 # SET PARAMETERS FOR TESTBENCH TEMPLATE #
 #########################################
-params.update({"TESTPATTERN":testPattern})
+params.update({"TESTPATTERN":testPattern,"random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

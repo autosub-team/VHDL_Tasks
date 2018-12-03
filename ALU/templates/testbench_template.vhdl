@@ -285,7 +285,7 @@ BEGIN
        end if;
 
 
-       report "Success" severity failure;
+       report "Success_{{random_tag}}" severity failure;
        wait;
 
 

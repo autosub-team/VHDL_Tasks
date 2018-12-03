@@ -92,7 +92,7 @@ architecture behavior of pwm_tb is
                 severity failure;
             end if;
         end loop;
-        report "Success" severity failure;
+        report "Success_{{random_tag}}" severity failure;
 
    end procedure;
 

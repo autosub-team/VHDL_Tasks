@@ -44,6 +44,7 @@ def generate_test_vectors(n, N):
 params={}
 
 task_parameters=sys.argv[1]
+random_tag=sys.argv[2]
 IN1_width, num_out = task_parameters.split('|')
 IN1_width = int(IN1_width)
 num_out = int(num_out)
@@ -94,7 +95,7 @@ input_test_array = (', '.join('\n\t\t"' + x + '"' for x in input_test_array))
 # SET PARAMETERS FOR TESTBENCH TEMPLATE #
 #########################################
 
-params.update({"IN1_width":IN1_width, "num_out":num_out, "SEL_width":SEL_width, "SEL_max":SEL_max, "input_test_array":input_test_array, "outputs_component":outputs_component, "output_signals":output_signals, "outputs_port_map":outputs_port_map, "outputs_test_array":outputs_test_array })
+params.update({"IN1_width":IN1_width, "num_out":num_out, "SEL_width":SEL_width, "SEL_max":SEL_max, "input_test_array":input_test_array, "outputs_component":outputs_component, "output_signals":output_signals, "outputs_port_map":outputs_port_map, "outputs_test_array":outputs_test_array,"random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

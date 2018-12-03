@@ -102,7 +102,7 @@ begin
                               & String_array(i)
                               & " ...done";
                               if(i = (array_size-1)) then    -- if all testet control signals match:
-                                    report "Success" severity failure;
+                                    report "Success_{{random_tag}}" severity failure;
                               end if;
                         else
                               report "§{Instruction '"

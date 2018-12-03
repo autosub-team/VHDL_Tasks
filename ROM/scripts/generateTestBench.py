@@ -9,6 +9,8 @@ from jinja2 import FileSystemLoader, Environment
 #################################################################
 
 x=str(sys.argv[1])
+random_tag=sys.argv[2]
+
 l = len(x)
 tmp=x[l-8:l]
 taskParameter=[int(tmp[0]),int(tmp[1])+8,int(tmp[2])+8,int(tmp[3:6])-50,int(tmp[6:8])]
@@ -54,7 +56,7 @@ params.update({"CLK":clk[taskParameter[0]],"mainClk":main_clk,"oppositeClk":oppo
 	       "OPPOSITECLK":clk[abs(taskParameter[0]-1)],"RANDOM":str(random_num),
 	       "INSTRUCTIONLENGTH":str(taskParameter[2]-1),"ADDRLENGTH":str(taskParameter[1]-1),
 	       "ADDRESSLENGTH":str(taskParameter[1]),"ROMSIZE":str(taskParameter[1]**2-1),"START":str(taskParameter[3]),
-	       "DATALENGTH":str(taskParameter[4]-1),"INSTRUCTIONS":instructions})
+	       "DATALENGTH":str(taskParameter[4]-1),"INSTRUCTIONS":instructions,"random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

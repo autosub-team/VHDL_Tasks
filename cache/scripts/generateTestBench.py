@@ -14,6 +14,7 @@ from jinja2 import FileSystemLoader, Environment
 #################################################################
 
 task_parameters=sys.argv[1] 
+random_tag=sys.argv[2]
 
 # get task parameters
 cache_size, block_length, tag_length, data_length, clock_polarity, hash_str = task_parameters.split('|')
@@ -62,7 +63,7 @@ params.update({ \
     "addr_length":str(addr_length), "data_length":str(data_length), "tag_length":str(tag_length), \
     "block_length":str(block_length), "cache_size":str(cache_size),"wrong_edge":wrong_edge, \
     "right_edge":right_edge, "tag_values":tag_values,"data_values":data_values, \
-    "correct_addr_set":correct_addr_set, "correct_data_set":correct_data_set \
+    "correct_addr_set":correct_addr_set, "correct_data_set":correct_data_set,"random_tag":random_tag \
 })
 
 ######################################

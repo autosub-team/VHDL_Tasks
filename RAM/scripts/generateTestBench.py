@@ -10,6 +10,7 @@ from jinja2 import FileSystemLoader, Environment
 #################################################################
 
 x=sys.argv[1]
+random_tag=sys.argv[2]
 taskParameter=[int(x[0:2])-8,int(x[2:4])-6,int(x[4]),int(x[5]),int(x[6])]
 
 params={}
@@ -94,7 +95,7 @@ content_test_out=("\n"+(25)*" ").join(content_test_out)
 #########################################
 params.update({"READLENGTH":str(read_len-1),"ADDRLENGTH":str(taskParameter[1]-1),"WRITELENGTH":str(write_len-1),
                "DATASIZE":str(taskParameter[0]),"RANDOM_ADDR":random_addr,"CONTENT_IN1":content_in,"CONTENT_OUT1":content_out,
-               "CONTENT_IN2":content_test_in,"CONTENT_OUT2":content_test_out})
+               "CONTENT_IN2":content_test_in,"CONTENT_OUT2":content_test_out,"random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

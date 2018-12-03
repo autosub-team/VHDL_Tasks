@@ -52,7 +52,7 @@ begin
                         ", received O=" & std_logic'image(O) & "}§" severity failure;
             end if;
         end loop;
-        report "Success" severity failure;
+        report "Success_{{random_tag}}" severity failure;
         wait;
     end process;
 end behavior;

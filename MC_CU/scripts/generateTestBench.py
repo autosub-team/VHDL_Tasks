@@ -19,6 +19,7 @@ from jinja2 import FileSystemLoader, Environment
 params={}
 
 task_parameters=sys.argv[1]
+random_tag=sys.argv[2]
 first_instruction, second_instruction = task_parameters.split('|')
 first_instruction = int(first_instruction)
 second_instruction = int(second_instruction)
@@ -351,7 +352,7 @@ else:
 # SET PARAMETERS FOR TESTBENCH TEMPLATE #
 #########################################
 
-params.update({"instruction_test_1":instruction_test_1, "instruction_test_2":instruction_test_2, "instruction_test_3":instruction_test_3, "instruction_test_4":instruction_test_4 })
+params.update({"instruction_test_1":instruction_test_1, "instruction_test_2":instruction_test_2, "instruction_test_3":instruction_test_3, "instruction_test_4":instruction_test_4,"random_tag":random_tag })
 
 #####################################
 # FILL AND PRINT TESTBENCH TEMPLATE #

@@ -293,7 +293,7 @@ begin
             end loop;
         {% endif %}
 
-    report "Success" severity failure;
+    report "Success_{{random_tag}}" severity failure;
     end process test_counter_beh;
 
 end Behavioral;

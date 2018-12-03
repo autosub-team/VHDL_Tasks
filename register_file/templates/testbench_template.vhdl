@@ -336,7 +336,7 @@ begin
 
 
 
-      report "Success" severity failure;
+      report "Success_{{random_tag}}" severity failure;
    end process test_register_bank_beh;
 
    -- Clock process definitions

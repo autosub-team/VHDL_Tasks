@@ -49,10 +49,16 @@ vcom_params='-2008'
 ######################################
 #       FUNCTIONS FOR TESTING        #
 ######################################
+
+# generate random tag, this tag has to be attached to the Success output and is
+# checked. Otherwise students could trick the system by reporting "Success" in
+# their behavior file
+random_tag=$(openssl rand -hex 6)
+
 function generate_testbench {
 	cd $task_path
 	#generate the testbench and move testbench to user's folder
-	python3 scripts/generateTestBench.py "$task_params" > $user_task_path/$testbench
+	python3 scripts/generateTestBench.py "$task_params" "$random_tag" > $user_task_path/$testbench
 
 }
 
@@ -131,12 +137,12 @@ function taskfiles_analyze {
 
 	for filename in $extrafiles
 	do
-		vcom $vcom_params $filename > /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt 
+		vcom $vcom_params $filename > /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt
 		RET=$?
 		if [ "$RET" -ne "$zero" ]
 		then
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename" 1>&2
-			cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2 
+			cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename"
 			exit_and_save_results $TASKERROR
 		fi
@@ -149,7 +155,7 @@ function taskfiles_analyze {
 		if [ "$RET" -ne "$zero" ]
 		then
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename" 1>&2
-			cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2 
+			cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename"
 			exit_and_save_results $TASKERROR
 		fi
@@ -160,7 +166,7 @@ function taskfiles_analyze {
 	if [ "$RET" -ne "$zero" ]
 	then
 		echo "Error with task ${task_nr} for user ${user_id} while analyzing the testbench" 1>&2
-		cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2 
+		cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2
 		echo "Error with task ${task_nr} for user ${user_id} while analyzing the testbench"
 		exit_and_save_results $TASKERROR
 	fi
@@ -244,7 +250,7 @@ function simulate {
 	fi
 
 	# check if simulation reported "Success":
-	egrep -q "Success" vsim.log
+	egrep -q "Success_$random_tag" vsim.log
 	RET_success=$?
 	if [ "$RET_success" -eq "$zero" ]
 	then
@@ -331,20 +337,20 @@ function exit_and_save_results {
 	# find last submission number
 	submission_nrs=($(ls $user_task_path | grep -oP '(?<=Submission)[0-9]+' | sort -nr))
 	submission_nr_last=${submission_nrs[0]}
-	
+
 	# jump into last submission folder and get the correct name (name includes time, which is unknown to this script)
 	cd $user_task_path/Submission${submission_nr_last}_*
 	user_submission_path="$user_task_path/${PWD##*/}"
-	
+
 	# create subfolder test_results
 	if [ ! -d "test_results" ]
 	then
 		mkdir test_results
 	fi
-	
+
 	# jump back to user task path
 	cd $user_task_path
-	
+
 	#copy error message into task_results folder
 	if [ -f $user_task_path/error_msg ]
 	then
@@ -352,7 +358,7 @@ function exit_and_save_results {
 		tgt=$user_submission_path/test_results
 		cp $src $tgt
 	fi
-	
+
 	#copy testbench into task_results folder
 	if [ -f $user_task_path/$testbench ]
 	then
@@ -360,7 +366,7 @@ function exit_and_save_results {
 		tgt=$user_submission_path/test_results/${task_name}_tb_${user_id}_Task${task_nr}.vhdl
 		cp $src $tgt
 	fi
-	
+
 	#copy vsim log into task_results folder
 	if [ -f $user_task_path/vsim.log ]
 	then
@@ -368,6 +374,6 @@ function exit_and_save_results {
 		tgt=$user_submission_path/test_results/vsim.log
 		cp $src $tgt
 	fi
-	
+
 	exit $1
 }

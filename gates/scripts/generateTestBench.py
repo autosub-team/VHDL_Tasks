@@ -37,6 +37,7 @@ def toBase2(number,length):
 #################################################################
 
 taskParameter=int(sys.argv[1])
+random_tag=sys.argv[2]
 params={}
 
 #get logic formula for taskParameter
@@ -72,7 +73,7 @@ testPattern=("\n"+12*" ").join(v) # just to make indentation
 #########################################
 # SET PARAMETERS FOR TESTBENCH TEMPLATE #
 #########################################
-params.update({"TESTPATTERN":testPattern, "FORMULA":formula})
+params.update({"TESTPATTERN":testPattern, "FORMULA":formula,"random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #

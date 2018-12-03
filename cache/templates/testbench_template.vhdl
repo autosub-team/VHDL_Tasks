@@ -228,7 +228,7 @@ begin
         end loop;
            
         -- if all tests are passed -> solution is correct
-        report "Success" severity failure;
+        report "Success_{{random_tag}}" severity failure;
         
     end process;
              

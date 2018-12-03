@@ -71,6 +71,7 @@ def rand_comp1(n):
 
 #################################################################
 taskParameters=int(sys.argv[1])
+random_tag=sys.argv[2]
 params={}
 
 #|2|1|5|5|5| bits from taskParameters
@@ -249,7 +250,7 @@ operand_style_dict={0:"unsigned",1:"comp1",2:"comp2"}
 
 params.update({"I1": i1_width, "I2": i2_width, "O": o_width})
 params.update({"OPERATION": operation_dict[operation], "OPSTYLE": operand_style_dict[operand_style]})
-params.update({"TESTPATTERN": testPattern})
+params.update({"TESTPATTERN": testPattern,"random_tag":random_tag})
 ###########################
 # FILL TESTBENCH TEMPLATE #
 ###########################

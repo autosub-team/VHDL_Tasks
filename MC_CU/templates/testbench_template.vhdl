@@ -121,7 +121,7 @@ begin
       -- instruction test 4:
       {{instruction_test_4}}
 
-      report "Success" severity failure;
+      report "Success_{{random_tag}}" severity failure;
    end process;
 
 end;
