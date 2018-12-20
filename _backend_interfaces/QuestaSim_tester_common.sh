@@ -13,6 +13,14 @@
 zero=0
 one=1
 
+# Exit codes for testing sequenz (needed to clarify which log files should be saved)
+FAILURE_NOATTACH=1
+FAILURE_VELSANALYZE=2
+FAILURE_USERANALYZE=3
+FAILURE_ELABORATE=4
+FAILURE_SIM=5
+SUCCESS_SIM=6
+
 #path to support files for backend_interfaces scripts
 support_files_path=$backend_interfaces_path/support_files
 
@@ -57,7 +65,7 @@ random_tag=$(openssl rand -hex 6)
 
 function generate_testbench {
 	cd $task_path
-	#generate the testbench and move testbench to user's folder
+	#generate the testbench
 	python3 scripts/generateTestBench.py "$task_params" "$random_tag" > $user_task_path/$testbench
 
 }
@@ -95,7 +103,7 @@ function prepare_test {
 		then
 			echo "Error with task ${task_nr}. User ${user_id} did not attach the right file."
 			echo "You did not attach your solution. Please attach the file $userfile" > error_msg
-			exit_and_save_results $FAILURE
+			exit_and_save_results $FAILURE_NOATTACH
 		fi
 
 		# delete comments from the file to allow checks like looking for 'wait'
@@ -144,7 +152,7 @@ function taskfiles_analyze {
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename" 1>&2
 			cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename"
-			exit_and_save_results $TASKERROR
+			exit_and_save_results $FAILURE_VELSANALYZE
 		fi
 	done
 
@@ -157,7 +165,7 @@ function taskfiles_analyze {
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename" 1>&2
 			cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename"
-			exit_and_save_results $TASKERROR
+			exit_and_save_results $FAILURE_VELSANALYZE
 		fi
 	done
 
@@ -168,7 +176,7 @@ function taskfiles_analyze {
 		echo "Error with task ${task_nr} for user ${user_id} while analyzing the testbench" 1>&2
 		cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2
 		echo "Error with task ${task_nr} for user ${user_id} while analyzing the testbench"
-		exit_and_save_results $TASKERROR
+		exit_and_save_results $FAILURE_VELSANALYZE
 	fi
 
 	rm -f /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt
@@ -204,7 +212,7 @@ function userfiles_analyze {
 			#cat /tmp/$USER/tmp_Task${task_nr}_User${user_id} >> error_msg
 			#########################################################################
 
-			exit_and_save_results $FAILURE
+			exit_and_save_results $FAILURE_USERANALYZE
 		fi
 	done
 
@@ -246,7 +254,7 @@ function simulate {
 		#cat vsim.log >> error_msg
 		#########################################################################
 
-		exit_and_save_results $FAILURE
+		exit_and_save_results $FAILURE_SIM
 	fi
 
 	# check if simulation reported "Success":
@@ -255,7 +263,7 @@ function simulate {
 	if [ "$RET_success" -eq "$zero" ]
 	then
 		echo "Functionally correct for task${task_nr} for user ${user_id}!"
-		exit_and_save_results $SUCCESS
+		exit_and_save_results $SUCCESS_SIM
 	fi
 
 	# attach wave file:
@@ -290,7 +298,7 @@ function simulate {
 		#cat vsim.log >> error_msg
 		#########################################################################
 
-		exit_and_save_results $FAILURE
+		exit_and_save_results $FAILURE_SIM
 	fi
 
 	# check for the error message from the testbench:
@@ -322,7 +330,7 @@ function simulate {
 		#cat vsim.log >> error_msg
 		#########################################################################
 
-		exit_and_save_results $FAILURE
+		exit_and_save_results $FAILURE_SIM
 	fi
 
 	# catch unhandled errors:
@@ -331,8 +339,16 @@ function simulate {
 	exit_and_save_results $FAILURE
 }
 
-# before exiting the simulation, first copy all relevant simulation files to the submission folder
+
+############################################################################################################
+# before exiting the simulation, first copy all relevant simulation and log files to the submission folder #
+############################################################################################################
+
 function exit_and_save_results {
+
+	########################################################################################
+	# generate subfolder inside submission folder for saving the simulation and log files  #
+	########################################################################################
 
 	# find last submission number
 	submission_nrs=($(ls $user_task_path | grep -oP '(?<=Submission)[0-9]+' | sort -nr))
@@ -351,11 +367,13 @@ function exit_and_save_results {
 	# jump back to user task path
 	cd $user_task_path
 
-	#copy error message into task_results folder
+	####################################################
+	# always save the error message and used testbench #
+	####################################################
 	if [ -f $user_task_path/error_msg ]
 	then
 		src=$user_task_path/error_msg
-		tgt=$user_submission_path/test_results
+		tgt=$user_submission_path/test_results/error_msg
 		cp $src $tgt
 	fi
 
@@ -367,13 +385,78 @@ function exit_and_save_results {
 		cp $src $tgt
 	fi
 
-	#copy vsim log into task_results folder
-	if [ -f $user_task_path/vsim.log ]
-	then
-		src=$user_task_path/vsim.log
-		tgt=$user_submission_path/test_results/vsim.log
-		cp $src $tgt
-	fi
+	##############################################################################
+	# depending on point of exit during test phase, save the relevant log files  #
+	##############################################################################
 
-	exit $1
+	# Failure: user attached not the correct files
+	if [ $1 = $FAILURE_NOATTACH ]
+	then
+		touch $user_submission_path/test_results/submission_log
+		echo "User has not attached the correct files, so no simulation was started." > $user_submission_path/test_results/submission_log
+		exit $FAILURE
+
+	# Failure: VELS files (not files from user) throw error
+	elif [ $1 = $FAILURE_VELSANALYZE ]
+	then
+		touch $user_submission_path/test_results/submission_log
+		echo "Error while analyzing files which are not from the user, please have a look at the global task error log." > $user_submission_path/test_results/submission_log
+		if [ -f $user_task_path/error_msg ]
+		then
+			src=/tmp/taskfiles_output_${user_id}_Task${task_nr}.txt
+			tgt=$user_submission_path/test_results/taskfiles_output_${user_id}_Task${task_nr}.txt
+			mv $src $tgt
+		fi
+
+		exit $TASKERROR
+
+	# Failure: Analyzing user files throws error
+	elif [ $1 = $FAILURE_USERANALYZE ]
+	then
+		touch $user_submission_path/test_results/submission_log
+		echo "Error while analyzing user files." > $user_submission_path/test_results/submission_log
+		
+		if [ -f /tmp/$USER/tmp_Task${task_nr}_User${user_id} ]
+		then
+			src=/tmp/$USER/tmp_Task${task_nr}_User${user_id}
+			tgt=$user_submission_path/test_results/tmp_Task${task_nr}_User${user_id}
+			mv $src $tgt
+
+		fi
+		exit $FAILURE
+
+	# Failure: Elaboration failed. NOT POSSIBLE WITH QUESTASIM
+	#elif [ $1 = $FAILURE_ELABORATE ]
+	#then
+	
+
+	# Failure: Simulation fails (either timeout, user syntax error or wrong behaviour)
+	elif [ $1 = $FAILURE_SIM ]
+	then
+		touch $user_submission_path/test_results/submission_log
+		echo "Simulation failed: either timeout, user syntax error or wrong behaviour." > $user_submission_path/test_results/submission_log
+		
+		if [ -f $user_task_path/vsim.log ]
+		then
+			src=$user_task_path/vsim.log
+			tgt=$user_submission_path/test_results/vsim.log
+			mv $src $tgt
+		fi
+		exit $FAILURE
+
+	# Success
+	elif [ $1 = $SUCCESS_SIM ]
+	then
+		touch $user_submission_path/test_results/submission_log
+		echo "Simulation was successfull, correct solution." > $user_submission_path/test_results/submission_log
+		
+		if [ -f $user_task_path/vsim.log ]
+		then
+			src=$user_task_path/vsim.log
+			tgt=$user_submission_path/test_results/vsim.log
+			mv $src $tgt
+		fi
+		exit $SUCCESS
+	fi
+	
 }

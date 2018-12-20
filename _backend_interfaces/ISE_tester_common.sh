@@ -40,28 +40,16 @@ testbench=${task_name}_tb_${user_id}_Task${task_nr}.vhdl
 ######################################
 #       FUNCTIONS FOR TESTING        #
 ######################################
+
+# generate random tag, this tag has to be attached to the Success output and is
+# checked. Otherwise students could trick the system by reporting "Success" in
+# their behavior file
+random_tag=$(openssl rand -hex 6)
+
 function generate_testbench {
 	cd $task_path
-	#generate the testbench and move testbench to user's folder
-	python3 scripts/generateTestBench.py "$task_params" > $user_task_path/$testbench
-
-	#------ SAVE USED TESTBENCH  ------ #
-
-	#  create directory for used testbenches if it does not exist
-	if [ ! -d "$user_task_path/used_tbs" ]
-	then
-		mkdir $user_task_path/used_tbs
-	fi
-
-	#find last submission number
-	submission_nrs=($(ls $user_task_path | grep -oP '(?<=Submission)[0-9]+' | sort -nr))
-	submission_nr_last=${submission_nrs[0]}
-
-	#copy used testbench
-	src=$user_task_path/$testbench
-	tgt=$user_task_path/used_tbs/${task_name}_tb_${user_id}_Task${task_nr}_Submission${submission_nr_last}.vhdl
-
-	cp $src $tgt
+	#generate the testbench
+	python3 scripts/generateTestBench.py "$task_params" "$random_tag" > $user_task_path/$testbench
 }
 
 function desccp {
@@ -97,7 +85,7 @@ function prepare_test {
 		then
 			echo "Error with task ${task_nr}. User ${user_id} did not attach the right file."
 			echo "You did not attach your solution. Please attach the file $userfile" > error_msg
-			exit $FAILURE
+			exit_and_save_results $FAILURE
 		fi
 		
 		# delete comments from the file to allow checks like looking for 'wait'
@@ -146,7 +134,7 @@ function taskfiles_analyze {
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename"
 			echo "Something went wrong with the task ${task_nr} test generation. This is not your" \
 			     "fault. We are working on a solution" > error_msg
-			exit $TASKERROR
+			exit_and_save_results $TASKERROR
 		fi
 	done
 
@@ -159,7 +147,7 @@ function taskfiles_analyze {
 			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename"
 			echo "Something went wrong with the task ${task_nr} test generation. This is not your" \
 			     "fault. We are working on a solution" > error_msg
-			exit $TASKERROR
+			exit_and_save_results $TASKERROR
 		fi
 	done
 
@@ -170,7 +158,7 @@ function taskfiles_analyze {
 		echo "Error with task ${task_nr} for user ${user_id} while analyzing the testbench"
 		echo "Something went wrong with the task ${task_nr} test generation. This is not your"\
 		     "fault. We are working on a solution" > error_msg
-		exit $TASKERROR
+		exit_and_save_results $TASKERROR
 	fi
 }
 
@@ -193,7 +181,7 @@ function userfiles_analyze {
 			echo "Task ${task_nr} possible infinite loop for user ${user_id}!"
 			echo "Your submitted behavior file seems to contain an infinite loop. Do all your"
 			     "processes have a sensitivity list?" > error_msg
-			exit $FAILURE
+			exit_and_save_results $FAILURE
 		fi
 
 		if [ "$RET" -eq "$zero" ]
@@ -206,7 +194,7 @@ function userfiles_analyze {
 			# suppress warnings about non usenglish, ERROR & WARTING >>  error_msg
 			cat /tmp/$USER/tmp_Task${task_nr}_User${user_id} | grep -v usenglish | grep WARNING >> error_msg
 			cat /tmp/$USER/tmp_Task${task_nr}_User${user_id} | grep ERROR >> error_msg
-			exit $FAILURE
+			exit_and_save_results $FAILURE
 		fi
 	done
 
@@ -230,7 +218,7 @@ function elaborate {
 		cat /tmp/$USER/tmp_Task${task_nr}_User${user_id} | grep -v usenglish | grep WARNING >> error_msg # suppress warnings about non usenglish
 		cat fuse.log | grep WARNING >> error_msg
 		cat fuse.log | grep -A 5 ERROR >> error_msg
-		exit $FAILURE
+		exit_and_save_results $FAILURE
 	fi
 }
 
@@ -249,7 +237,7 @@ function simulate {
 	then
 		echo "Task${task_nr} simulation timeout for user ${user_id}!"
 		echo "The simulation of your design timed out. This is not supposed to happen. Check your design." > error_msg
-		exit $FAILURE
+		exit_and_save_results $FAILURE
 	fi
 
 	# check if simulation reported "Success":
@@ -258,7 +246,7 @@ function simulate {
 	if [ "$RET_success" -eq "$zero" ]
 	then
 		echo "Functionally correct for task${task_nr} for user ${user_id}!"
-		exit $SUCCESS
+		exit_and_save_results $SUCCESS
 	fi
 
 	# attach wave file:
@@ -284,7 +272,7 @@ function simulate {
 		then
 			echo "No continuous signal detected. Please look at the attached wave file to see what signal your entity produces." >> error_msg
 		fi
-		exit $FAILURE
+		exit_and_save_results $FAILURE
 	fi
 
 	# check for simulation errors:
@@ -297,7 +285,7 @@ function simulate {
 		cat /tmp/$USER/tmp_Task${task_nr}_User${user_id} | grep -v usenglish | grep WARNING >> error_msg # suppress warnings about non usenglish
 		cat fuse.log | grep WARNING >> error_msg
 		cat isim.log | grep -v Security | grep -A 5 ERROR >> error_msg
-	exit $FAILURE
+	exit_and_save_results $FAILURE
 	fi
 
 	# check for the error message from the testbench:
@@ -315,11 +303,75 @@ function simulate {
 			echo "Please look at the attached wave file to see what signal(s) your entity produces. Use a viewer like GTKWave" \
 			      "or the EdaPlayground Waveviewer(https://www.edaplayground.com/w)." >> error_msg
 		fi
-		exit $FAILURE
+		exit_and_save_results $FAILURE
 	fi
 
 	# catch unhandled errors:
 	echo "Unhandled error for task ${task_nr} for user ${user_id}!"
 	echo "Your submitted behavior file does not behave like specified in the task description." > error_msg
-	exit $FAILURE
+	exit_and_save_results $FAILURE
+}
+
+
+# before exiting the simulation, first copy all relevant simulation files to the submission folder
+function exit_and_save_results {
+
+	# find last submission number
+	submission_nrs=($(ls $user_task_path | grep -oP '(?<=Submission)[0-9]+' | sort -nr))
+	submission_nr_last=${submission_nrs[0]}
+
+	# jump into last submission folder and get the correct name (name includes time, which is unknown to this script)
+	cd $user_task_path/Submission${submission_nr_last}_*
+	user_submission_path="$user_task_path/${PWD##*/}"
+
+	# create subfolder test_results
+	if [ ! -d "test_results" ]
+	then
+		mkdir test_results
+	fi
+
+	# jump back to user task path
+	cd $user_task_path
+
+	#copy error message into task_results folder
+	if [ -f $user_task_path/error_msg ]
+	then
+		src=$user_task_path/error_msg
+		tgt=$user_submission_path/test_results
+		cp $src $tgt
+	fi
+
+	#copy testbench into task_results folder
+	if [ -f $user_task_path/$testbench ]
+	then
+		src=$user_task_path/$testbench
+		tgt=$user_submission_path/test_results/${task_name}_tb_${user_id}_Task${task_nr}.vhdl
+		cp $src $tgt
+	fi
+
+	#move isim.log into task_results folder (otherwise next simulation which exits before generating isim.log would also copy this file)
+	if [ -f $user_task_path/isim.log ]
+	then
+		src=$user_task_path/isim.log
+		tgt=$user_submission_path/test_results/isim.log
+		mv $src $tgt
+	
+	# if isim.log does not exist then save the analyzation file
+	elif [ -f /tmp/$USER/tmp_Task${task_nr}_User${user_id} ]
+	then
+		src=/tmp/$USER/tmp_Task${task_nr}_User${user_id}
+		tgt=$user_submission_path/test_results/tmp_Task${task_nr}_User${user_id}
+		mv $src $tgt
+
+	fi
+
+	#move fuse log into task_results folder (otherwise next simulation which exits before generating fuselog would also copy this file)
+	if [ -f $user_task_path/fuse.log ]
+	then
+		src=$user_task_path/fuse.log
+		tgt=$user_submission_path/test_results/fuse.log
+		mv $src $tgt
+	fi
+
+	exit $1
 }
