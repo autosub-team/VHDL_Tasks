@@ -212,7 +212,7 @@ testPattern_undef=("\n"+12*" ").join(testVectors_undef)
 #########################################
 # SET PARAMETERS FOR TESTBENCH TEMPLATE #
 #########################################
-params.update({"TESTPATTERN_DEF":testPattern_def, "TESTPATTERN_UNDEF":testPattern_undef, "num_states" : numNodes"random_tag":random_tag})
+params.update({"TESTPATTERN_DEF":testPattern_def, "TESTPATTERN_UNDEF":testPattern_undef, "num_states" : numNodes, "random_tag":random_tag})
 
 ###########################
 # FILL TESTBENCH TEMPLATE #
