@@ -37,6 +37,7 @@ architecture behavior of pwm_tb is
 
         variable periods: periods_array;
         variable duty_cycles : duties_array;
+        variable duty_cycles_floor : duties_array;
 
         variable duty_cycle_clks: clk_cnts_array;
         variable period_clks: clk_cnts_array;
@@ -83,12 +84,21 @@ architecture behavior of pwm_tb is
             if( ( (desired_duty_cycle_clks-1)<=duty_cycle_clks(i) ) and ( (desired_duty_cycle_clks+1)>=duty_cycle_clks(i) ) ) then
                 next;
             else
+                --prepare printing actual duty cycle as xx.yy without using non-standard math packages (this works like floor function)
+                -- duty_cycles_floor = floor(duty_cycles)
+                for j in 0 to (simulation_cycles-1) loop
+                    duty_cycles_floor(j) := Real(Natural(duty_cycles(j)));
+                    if(duty_cycles_floor(j)>duty_cycles(j)) then
+                          duty_cycles_floor(j):=  duty_cycles_floor(j)-1.0;
+                    end if;
+                end loop;
             report  "§{Duty cycle not right (Should be " & natural'image(desired_duty_cycle) & "%); First 5 measured duties:" &
-                    natural'image(duty_cycles(0)) & "%, " &
-                    natural'image(duty_cycles(1)) & "%, " &
-                    natural'image(duty_cycles(2)) & "%, " &
-                    natural'image(duty_cycles(3)) & "%, " &
-                    natural'image(duty_cycles(4)) & "%}§"
+                    -- print actual duty cycle as xx.yy
+		    natural'image(Natural(duty_cycles(0))) & "." & natural'image(Natural((duty_cycles(0) - duty_cycles_floor(0))*100.0 )) & "%, " &
+                    natural'image(Natural(duty_cycles(1))) & "." & natural'image(Natural((duty_cycles(1) - duty_cycles_floor(1))*100.0 )) & "%, " &
+                    natural'image(Natural(duty_cycles(2))) & "." & natural'image(Natural((duty_cycles(2) - duty_cycles_floor(2))*100.0 )) & "%, " &
+                    natural'image(Natural(duty_cycles(3))) & "." & natural'image(Natural((duty_cycles(3) - duty_cycles_floor(3))*100.0 )) & "%, " &
+                    natural'image(Natural(duty_cycles(4))) & "." & natural'image(Natural((duty_cycles(4) - duty_cycles_floor(4))*100.0 )) & "%}§"
                 severity failure;
             end if;
         end loop;
@@ -137,6 +147,16 @@ begin
             wait;
         end if;
 
+    end process;
+
+    -- process to timeout the testbench when no PWM signal is found during the test cycles
+    -- max time = 15 * desired testing time
+    timeout: process
+        
+    begin
+	wait for (15*simulation_cycles) * desired_period_clks * clk_period ;
+        report  "§{No continious PWM signal was found on your output. Either you do not output any signal or it changes too slow.}§" severity failure;
+        wait;
     end process;
 
 
