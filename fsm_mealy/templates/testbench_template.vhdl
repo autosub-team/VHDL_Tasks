@@ -193,13 +193,24 @@ begin
                 wait until rising_edge(CLK_UUT);
                 wait for 1 ns;
 
-                if(STATE_UUT /= patterns_undef(i).STATE or OUTPUT_UUT /= patterns_undef(i).OUTPUT) then
+                if(STATE_UUT /= patterns_undef(i).STATE) then
                     write(OUTPUT,string'("§{\n"));
                     write(OUTPUT,string'("Error:") & string'("\n"));
 
                     write(OUTPUT,string'("   From STATE = ")&Image(last_state)& string'("\n"));
                     write(OUTPUT,string'("   With INPUT = ")&Image(patterns_undef(i).INPUT)& string'("\n"));
-                    write(OUTPUT,string'("\nReceived a state or output change, although the state has no transition defined for this input!}§"));
+                    write(OUTPUT,string'("\nReceived a state change, although the state has no transition defined for this input!}§"));
+
+                    report "Simulation error" severity failure;
+                end if;--endif check
+
+                if(OUTPUT_UUT /= "00") then
+                    write(OUTPUT,string'("§{\n"));
+                    write(OUTPUT,string'("Error:") & string'("\n"));
+
+                    write(OUTPUT,string'("   From STATE = ")&Image(last_state)& string'("\n"));
+                    write(OUTPUT,string'("   With INPUT = ")&Image(patterns_undef(i).INPUT)& string'("\n"));
+                    write(OUTPUT,string'("\nOutput is not '00', although the state has no transition defined for this input!}§"));
 
                     report "Simulation error" severity failure;
                 end if;--endif check
