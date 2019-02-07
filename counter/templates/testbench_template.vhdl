@@ -103,7 +103,7 @@ begin
         Enable <= '1';
 {% endif %}
         -----------------------------
-        -- check initial value after reset
+        -- check initial value after reset and if reset is synchronous
         -----------------------------
         wait until rising_edge(CLK);
         wait until rising_edge(CLK);
@@ -117,6 +117,20 @@ begin
             report "§{Initial counter value after reset not right. Received " & image(Output) & ". Expected " & image(std_logic_vector(to_unsigned(init_value, Output'length))) & ".}§" severity failure;
         end if;
 
+        RST <= '0';
+        wait until rising_edge(CLK);
+        wait until rising_edge(CLK);
+        wait for CLK_period/4;
+        if (Output /= std_logic_vector(to_unsigned(init_value+2, Output'length))) then
+             report "§{Output value not right while counting up. Received " & image(Output) & ". Expected " & image(std_logic_vector(to_unsigned(init_value+2, Output'length))) & ".}§" severity failure;
+        end if;
+
+        RST <= '1';
+        wait for CLK_period/2;
+
+        if (Output /= std_logic_vector(to_unsigned(init_value+2, Output'length))) then
+            report "§{Your Reset is not synchronous. When RST is set to '1', your Output changes before the next rising edge.}§" severity failure;
+        end if;
         RST <= '0';
 
     {% if enable %}
