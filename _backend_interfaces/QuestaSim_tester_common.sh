@@ -13,13 +13,14 @@
 zero=0
 one=1
 
-# Exit codes for testing sequenz (needed to clarify which log files should be saved)
+# local error codes for testing sequenz (needed to clarify which log files should be saved)
 FAILURE_NOATTACH=1
 FAILURE_VELSANALYZE=2
 FAILURE_USERANALYZE=3
 FAILURE_ELABORATE=4
 FAILURE_SIM=5
 SUCCESS_SIM=6
+FAILURE_UNHANDLED=7
 
 #path to support files for backend_interfaces scripts
 support_files_path=$backend_interfaces_path/support_files
@@ -336,7 +337,7 @@ function simulate {
 	# catch unhandled errors:
 	echo "Unhandled error for task ${task_nr} for user ${user_id}!"
 	echo "Your submitted behavior file does not behave like specified in the task description." > error_msg
-	exit_and_save_results $FAILURE
+	exit_and_save_results $FAILURE_UNHANDLED
 }
 
 
@@ -449,7 +450,7 @@ function exit_and_save_results {
 	then
 		touch $user_submission_path/test_results/submission_log
 		echo "Simulation was successfull, correct solution." > $user_submission_path/test_results/submission_log
-		
+
 		if [ -f $user_task_path/vsim.log ]
 		then
 			src=$user_task_path/vsim.log
@@ -457,6 +458,36 @@ function exit_and_save_results {
 			mv $src $tgt
 		fi
 		exit $SUCCESS
+
+        # Failure: Unhandled failure occured
+	elif [ $1 = $FAILURE_UNHANDLED ]
+	then
+		touch $user_submission_path/test_results/submission_log
+		echo "Unhandled error occured" > $user_submission_path/test_results/submission_log
+
+		if [ -f $user_task_path/vsim.log ]
+		then
+			src=$user_task_path/vsim.log
+			tgt=$user_submission_path/test_results/vsim.log
+			mv $src $tgt
+		fi
+
+		if [ -f $user_task_path/error_msg ]
+		then
+			src=/tmp/taskfiles_output_${user_id}_Task${task_nr}.txt
+			tgt=$user_submission_path/test_results/taskfiles_output_${user_id}_Task${task_nr}.txt
+			mv $src $tgt
+		fi
+
+		if [ -f /tmp/$USER/tmp_Task${task_nr}_User${user_id} ]
+		then
+			src=/tmp/$USER/tmp_Task${task_nr}_User${user_id}
+			tgt=$user_submission_path/test_results/tmp_Task${task_nr}_User${user_id}
+			mv $src $tgt
+
+		fi
+
+		exit $FAILURE
 	fi
 	
 }
