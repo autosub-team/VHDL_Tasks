@@ -32,7 +32,7 @@ architecture behavior of pwm_tb is
 
     procedure evaluate_PWM is
         type periods_array is array ( (simulation_cycles-1) downto 0) of time;
-        subtype percentage is natural range 0 to 100;
+        subtype percentage is real range 0.0 to 100.0;
         type duties_array is array ( (simulation_cycles-1) downto 0) of percentage;
 
         variable periods: periods_array;
@@ -58,7 +58,7 @@ architecture behavior of pwm_tb is
                 duty_cycle_clks(i) := pulse_ends(i) - pulse_starts(i);
             end if;
 
-            duty_cycles(i) := duty_cycle_clks(i)*100/period_clks(i);
+            duty_cycles(i) := Real(duty_cycle_clks(i)*100)/Real(period_clks(i));
             periods(i) := period_clks(i) * clk_period;
         end loop;
 
@@ -92,7 +92,7 @@ architecture behavior of pwm_tb is
                           duty_cycles_floor(j):=  duty_cycles_floor(j)-1.0;
                     end if;
                 end loop;
-            report  "§{Duty cycle not right (Should be " & natural'image(desired_duty_cycle) & "%); First 5 measured duties:" &
+            report  "§{Duty cycle not right (Should be " & natural'image(desired_duty_cycle) & "%); First 5 measured duties: " &
                     -- print actual duty cycle as xx.yy
 		    natural'image(Natural(duty_cycles(0))) & "." & natural'image(Natural((duty_cycles(0) - duty_cycles_floor(0))*100.0 )) & "%, " &
                     natural'image(Natural(duty_cycles(1))) & "." & natural'image(Natural((duty_cycles(1) - duty_cycles_floor(1))*100.0 )) & "%, " &
