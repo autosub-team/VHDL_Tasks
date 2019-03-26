@@ -94,11 +94,11 @@ architecture behavior of pwm_tb is
                 end loop;
             report  "§{Duty cycle not right (Should be " & natural'image(desired_duty_cycle) & "%); First 5 measured duties: " &
                     -- print actual duty cycle as xx.yy
-		    natural'image(Natural(duty_cycles(0))) & "." & natural'image(Natural((duty_cycles(0) - duty_cycles_floor(0))*100.0 )) & "%, " &
-                    natural'image(Natural(duty_cycles(1))) & "." & natural'image(Natural((duty_cycles(1) - duty_cycles_floor(1))*100.0 )) & "%, " &
-                    natural'image(Natural(duty_cycles(2))) & "." & natural'image(Natural((duty_cycles(2) - duty_cycles_floor(2))*100.0 )) & "%, " &
-                    natural'image(Natural(duty_cycles(3))) & "." & natural'image(Natural((duty_cycles(3) - duty_cycles_floor(3))*100.0 )) & "%, " &
-                    natural'image(Natural(duty_cycles(4))) & "." & natural'image(Natural((duty_cycles(4) - duty_cycles_floor(4))*100.0 )) & "%}§"
+		    natural'image(Natural(duty_cycles_floor(0))) & "." & natural'image(Natural((duty_cycles(0) - duty_cycles_floor(0))*100.0 )) & "%, " &
+                    natural'image(Natural(duty_cycles_floor(1))) & "." & natural'image(Natural((duty_cycles(1) - duty_cycles_floor(1))*100.0 )) & "%, " &
+                    natural'image(Natural(duty_cycles_floor(2))) & "." & natural'image(Natural((duty_cycles(2) - duty_cycles_floor(2))*100.0 )) & "%, " &
+                    natural'image(Natural(duty_cycles_floor(3))) & "." & natural'image(Natural((duty_cycles(3) - duty_cycles_floor(3))*100.0 )) & "%, " &
+                    natural'image(Natural(duty_cycles_floor(4))) & "." & natural'image(Natural((duty_cycles(4) - duty_cycles_floor(4))*100.0 )) & "%}§"
                 severity failure;
             end if;
         end loop;
