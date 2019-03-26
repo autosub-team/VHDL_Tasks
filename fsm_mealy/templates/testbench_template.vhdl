@@ -193,24 +193,21 @@ begin
                 wait until rising_edge(CLK_UUT);
                 wait for 1 ns;
 
-                if(STATE_UUT /= patterns_undef(i).STATE) then
+                if(STATE_UUT /= patterns_undef(i).STATE or OUTPUT_UUT /= patterns_undef(i).OUTPUT) then
                     write(OUTPUT,string'("§{\n"));
                     write(OUTPUT,string'("Error:") & string'("\n"));
 
                     write(OUTPUT,string'("   From STATE = ")&Image(last_state)& string'("\n"));
                     write(OUTPUT,string'("   With INPUT = ")&Image(patterns_undef(i).INPUT)& string'("\n"));
-                    write(OUTPUT,string'("\nReceived a state change, although the state has no transition defined for this input!}§"));
 
-                    report "Simulation error" severity failure;
-                end if;--endif check
+                    write(OUTPUT,string'("Expected :")& string'("\n"));
+                    write(OUTPUT,string'("   STATE= ")&Image(patterns_undef(i).STATE)& string'("\n"));
+                    write(OUTPUT,string'("   OUTPUT=")&Image(patterns_undef(i).OUTPUT)& string'("\n"));
 
-                if(OUTPUT_UUT /= "00") then
-                    write(OUTPUT,string'("§{\n"));
-                    write(OUTPUT,string'("Error:") & string'("\n"));
-
-                    write(OUTPUT,string'("   From STATE = ")&Image(last_state)& string'("\n"));
-                    write(OUTPUT,string'("   With INPUT = ")&Image(patterns_undef(i).INPUT)& string'("\n"));
-                    write(OUTPUT,string'("\nOutput is not '00', although the state has no transition defined for this input!}§"));
+                    write(OUTPUT,string'("Received: ") & string'("\n"));
+                    write(OUTPUT,string'("   STATE=  ")&Image(STATE_UUT)& string'("\n"));
+                    write(OUTPUT,string'("   OUTPUT= ")&Image(OUTPUT_UUT)& string'("\n"));
+                    write(OUTPUT,string'("\nReceived a state change or output is not 00, although the state has no transition defined for this input!}§"));
 
                     report "Simulation error" severity failure;
                 end if;--endif check

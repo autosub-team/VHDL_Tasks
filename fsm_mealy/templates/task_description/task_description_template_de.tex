@@ -59,7 +59,7 @@ Die Entity "`fsm"' soll das Verhalten einer deterministischen \textbf{MEALY} Fin
 \item Synchrones Design: Alle neuen Ausg\"ange (Port STATE und Port OUTPUT) m\"ussen mit der steigenden Taktflanke gesetzt werden.
 \item Der aktuelle Zustand muss am Ausgangsport STATE ausgegeben werden.
 \item Bei einem synchronen Reset (Port RST=1, steigende Flanke des Taktsignals CLK) soll die State Machine auf den initialen Zustand (Anfangszustand) gesetzt werden: STATE = START, OUTPUT = "00".
-\item F\"ur Eing\"ange, f\"ur die kein \"Ubergang im Diagramm definiert ist, soll sich der Zustand nicht \"andern und OUTPUT = "00" sein.
+\item F\"ur Eing\"ange, f\"ur die kein \"Ubergang im Diagramm definiert ist, soll folgendes Verhalten implementiert werden: Zustand soll sich nicht \"andern, OUTPUT = "00".
 \end{itemize}
 \vspace{0.5cm}
 
