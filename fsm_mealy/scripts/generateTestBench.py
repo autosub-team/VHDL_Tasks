@@ -201,7 +201,8 @@ for i in range(0,numNodes):
     # attach test transition for each undefined input
     for undef_inp in undef_per_node[i]:
         # (end, input, output)
-        trans = Transition(nodeUnderTest, undef_inp, outputs_to_node[i])
+        #trans = Transition(nodeUnderTest, undef_inp, outputs_to_node[i])
+        trans = Transition(nodeUnderTest, undef_inp, "00")
         testVectors_undef.extend(formatTrans(trans))
 
 #format for testbench, join
