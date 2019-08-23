@@ -9,11 +9,10 @@
 \usepackage{a4wide}
 \usepackage{tikz}
 \usetikzlibrary{calc}
-\usepackage[ngerman]{babel}
 
 \begin{document}
 \pagestyle{empty}
-\setlength{\parindent}{0em} 
+\setlength{\parindent}{0em}
 \section*{\noindent Cache }
 
 Your task is to program the behavior of an entity called "cache". This entity is declared in the attached file "cache.vhdl" and has the following properties:
@@ -58,7 +57,7 @@ Do not change the file "cache.vhdl"!\\
 
 The aim of this task is to program the reading unit of a \textit{direct mapped} cache. Depending on the address set at the address input \textit{addr}, the cache has to be searched and the memory content has to be returned in case of a \textit{cache hit}. With a \textit{direct mapped cache}, the position of a date in the cache is uniquely defined by the address. If the cache contains M entries, then N = $\lceil log_2(M) \rceil$ bits of the address are required for the position calculation (= index) in the cache and the remaining bits of the address are additionally stored in the cache as a \textit{tag}.
 When checking whether a date exists in the cache, the position in the cache must first be calculated using a part of the address and then the stored \textit{tag} must be compared with the second part of the address. If this matches, a \textit{cache hit} is detected. Figure \ref{img_cache} illustrates the concept of a direct mapped cache.
- 
+
 
 \begin{figure}[h]
 \begin{center}
@@ -90,12 +89,12 @@ edge.
 
 \item The {{cache_size}} entries stored in the cache and its tags are given in table \ref{tab_cachedata} and should be set as constant content in your cache. (This would normaly be done by the writing unit of the cache.)
 
-\item If a read access occurs (\textit{en\_read} = '1'), the potential position of the data in the cache (= index) and the related tag should be calculated from the address \textit{addr}. If a \textit{cache hit} occurs, the data at this address should be output at the output \textit{data} and the flag \textit{ch\_cm} set to '1'. If a \textit{cache miss} occurs, the output \textit{data}  should set to High Impedance ('Z') and the flag \textit{ch\_cm} set to '0'. 
+\item If a read access occurs (\textit{en\_read} = '1'), the potential position of the data in the cache (= index) and the related tag should be calculated from the address \textit{addr}. If a \textit{cache hit} occurs, the data at this address should be output at the output \textit{data} and the flag \textit{ch\_cm} set to '1'. If a \textit{cache miss} occurs, the output \textit{data}  should set to High Impedance ('Z') and the flag \textit{ch\_cm} set to '0'.
 
 
 \item If during a read access the cache index of the address is greater than the memory depth of the cache, the output \textit{data}  should also be High Impedance ('Z') and the flag \textit{ch\_cm} should return '0'.
 
-\item For the calculation of the cache index and the tag from the given address, you have to consider the following: The index is calculated from the n least significant address bits, where n is the minimum number of bits required to display all {{cache_size}} indices in the cache. The remaining m bits are stored as tag (n + m = address length = {{addr_length}}). 
+\item For the calculation of the cache index and the tag from the given address, you have to consider the following: The index is calculated from the n least significant address bits, where n is the minimum number of bits required to display all {{cache_size}} indices in the cache. The remaining m bits are stored as tag (n + m = address length = {{addr_length}}).
 
 
 \end{itemize}
@@ -112,7 +111,7 @@ edge.
 \hline
 \end{tabular}
 
-\caption{Inhalt des Caches. Die Daten und Tags sind jeweils mit MSB first angegeben.}
+\caption{Contents of the cache. Data and tag are shown with MSB first.}
 \label{tab_cachedata}
 \end{table}
 
