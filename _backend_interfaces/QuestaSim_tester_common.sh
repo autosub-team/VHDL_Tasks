@@ -345,6 +345,7 @@ function simulate {
 		# message to error_msg for user
 		echo "Simulation Error:" > error_msg
 		cat vsim.log | grep '\*\* Fatal'| sed 's/Fatal/Error/g' >> error_msg
+		cat vsim.log | grep 'Fatal error in' | sed 's/Fatal error in/in/g' >> error_msg
 		cat vsim.log | grep '\*\* Error' >> error_msg
 		cat /tmp/$USER/tmp_Task${task_nr}_User${user_id} | grep '\*\* Warning' >> error_msg
 		cat vsim.log | grep '\*\* Warning' >> error_msg
