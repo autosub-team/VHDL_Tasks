@@ -64,16 +64,27 @@ vcom_params='-2008'
 # their behavior file
 random_tag=$(openssl rand -hex 6)
 
+#
+#-------------------------------------------------------------------------------
+#
+
 function generate_testbench {
 	cd $task_path
 	#generate the testbench
 	python3 scripts/generateTestBench.py "$task_params" "$random_tag" > $user_task_path/$testbench
-
 }
+
+#
+#-------------------------------------------------------------------------------
+#
 
 function desccp {
 	cp $desc_path/$1 $user_task_path
 }
+
+#
+#-------------------------------------------------------------------------------
+#
 
 function prepare_test {
 	cd $user_task_path
@@ -124,7 +135,7 @@ function prepare_test {
 		desccp $filename
 	done
 
-	# copy the .do (tcl) file for testing to user's folder
+	# ----- copy the .do (tcl) file for testing to user's folder -----
 	# if a special version exists use it, else use common one
 	if [ -f $task_path/scripts/vsim.do ]
 	then
@@ -138,8 +149,15 @@ function prepare_test {
 	source /eda/QuestaSim_setup.sh
 }
 
+#
+#-------------------------------------------------------------------------------
+#
+
 function taskfiles_analyze {
 	cd $user_task_path
+
+	rm -rf /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt
+	touch /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt
 
 	#------ ANALYZE FILES WHICH ARE NOT FROM THE USER ------#
 	# Sequence: extrafiles (packages etc.) - entities - testbench
@@ -150,9 +168,17 @@ function taskfiles_analyze {
 		RET=$?
 		if [ "$RET" -ne "$zero" ]
 		then
-			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename" 1>&2
+			# message to tasks.sterr
+			echo "Error with task ${task_nr} for user ${user_id} while analyzing extrafile $filename" 1>&2
 			cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2
-			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename"
+
+			# message to tasks.stdout
+			echo "Error with task ${task_nr} for user ${user_id} while analyzing extrafile $filename"
+
+			# message to error_msg for user
+			echo "Something went wrong with the task ${task_nr} test generation. This is not your " \
+			     "fault. We are working on a solution" > error_msg
+
 			exit_and_save_results $FAILURE_VELSANALYZE
 		fi
 	done
@@ -163,9 +189,17 @@ function taskfiles_analyze {
 		RET=$?
 		if [ "$RET" -ne "$zero" ]
 		then
-			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename" 1>&2
+			# message to tasks.sterr
+			echo "Error with task ${task_nr} for user ${user_id} while analyzing entity $filename" 1>&2
 			cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2
-			echo "Error with task ${task_nr} for user ${user_id} while analyzing $filename"
+
+			# message to tasks.stdout
+			echo "Error with task ${task_nr} for user ${user_id} while analyzing entity $filename"
+
+			# message to error_msg for user
+			echo "Something went wrong with the task ${task_nr} test generation. This is not your " \
+			     "fault. We are working on a solution" > error_msg
+
 			exit_and_save_results $FAILURE_VELSANALYZE
 		fi
 	done
@@ -174,9 +208,17 @@ function taskfiles_analyze {
 	RET=$?
 	if [ "$RET" -ne "$zero" ]
 	then
+		# message to tasks.sterr
 		echo "Error with task ${task_nr} for user ${user_id} while analyzing the testbench" 1>&2
 		cat /tmp/taskfiles_output_${user_id}_Task${task_nr}.txt | grep '\*\* Error' 1>&2
+
+		# message to tasks.stdout
 		echo "Error with task ${task_nr} for user ${user_id} while analyzing the testbench"
+
+		# message to error_msg for user
+		echo "Something went wrong with the task ${task_nr} test generation. This is not your " \
+		     "fault. We are working on a solution" > error_msg
+
 		exit_and_save_results $FAILURE_VELSANALYZE
 	fi
 
@@ -200,11 +242,14 @@ function userfiles_analyze {
 
 		if [ "$RET" -eq "$zero" ]
 		then
-		   echo "Task ${task_nr} analyze success for user ${user_id}!"
+			# message to tasks.stdout
+			echo "Task ${task_nr} analyze success for user ${user_id}!"
 		else
+			# message to tasks.stdout
 			echo "Task ${task_nr} analyze FAILED for user ${user_id}!"
-			echo "Analyzation of your submitted behavior file failed:" > error_msg
 
+			# message to error_msg for user
+			echo "Analyzation of your submitted behavior file failed:" > error_msg
 			#TODO supress other errors and warnings?
 			cat /tmp/$USER/tmp_Task${task_nr}_User${user_id} | grep -v 'VHDL Compiler exiting' | grep '\*\* Error' >> error_msg
 
@@ -216,12 +261,19 @@ function userfiles_analyze {
 			exit_and_save_results $FAILURE_USERANALYZE
 		fi
 	done
-
 }
+
+#
+#-------------------------------------------------------------------------------
+#
 
 function elaborate {
 	: # no explicit elaboration step with QuestaSim
 }
+
+#
+#-------------------------------------------------------------------------------
+#
 
 function simulate {
 	cd $user_task_path
@@ -231,7 +283,7 @@ function simulate {
 
 	# start simulation, output is written to a file called transcript, no need
 	# to output the error messages to stderr, as they are also in the transcript
-	timeout $simulation_timeout vsim -c -do "vsim.do" ${testbench_ent} -voptargs="+acc" 2> /dev/null
+	timeout $simulation_timeout vsim -c -do "vsim.do" ${testbench_ent} -voptargs="+acc"  1>&2 2> /dev/null
 	RET_timeout=$?
 
 	#delete the starting # from the logfile, rename it
@@ -240,7 +292,10 @@ function simulate {
 	# check if simulation timed out:
 	if [ "$RET_timeout" -eq 124 ] # timeout exits 124 if it had to kill the process. Probably the simulation has crashed.
 	then
-		echo "Task${task_nr} simulation timeout for user ${user_id}!"
+		# messagt to tasks.stdout
+		echo "Task ${task_nr} simulation timeout for user ${user_id}!"
+
+		# message to error_msg for user
 		echo "The simulation of your design timed out. This is not supposed to happen. Check your design." > error_msg
 
 		#attach warnings & errors, maybe they help user
@@ -284,11 +339,13 @@ function simulate {
 	RET_simulation_error=$?
 	if [ "$RET_simulation_error" -eq "$zero" ]
 	then
+		# message to tasks.stdout
 		echo "Simulation error for task ${task_nr} for user ${user_id}"
+
+		# message to error_msg for user
 		echo "Simulation Error:" > error_msg
 		cat vsim.log | grep '\*\* Fatal'| sed 's/Fatal/Error/g' >> error_msg
 		cat vsim.log | grep '\*\* Error' >> error_msg
-
 		cat /tmp/$USER/tmp_Task${task_nr}_User${user_id} | grep '\*\* Warning' >> error_msg
 		cat vsim.log | grep '\*\* Warning' >> error_msg
 
@@ -302,15 +359,18 @@ function simulate {
 		exit_and_save_results $FAILURE_SIM
 	fi
 
-	# check for the error message from the testbench:
+	# check for the error messages from the testbench:
 	egrep -q '§{' vsim.log
 	RET_tb_error_message=$?
 	if [ "$RET_tb_error_message" -eq "$zero" ]
 	then
+		# message to tasks.stdout
 		echo "Wrong behavior for task ${task_nr} for user ${user_id}"
+
+		# message to error_msg for user
 		echo "Your submitted behavior file does not behave like specified in the task description:" > error_msg
 
-		# filter out the testbench error messages between §{...}§  , filter out Failure message
+		# filter out the testbench error messages between §{...}§ , filter out Failure message
 		cat vsim.log | awk '/§{/,/}§/' | sed 's/§{//g' | sed 's/}§//g' | sed 's/\*\* Failure: //g' \
 			| sed 's/Simulation error//g'| sed 's/\\n/\n/g' >> error_msg
 
@@ -334,17 +394,33 @@ function simulate {
 		exit_and_save_results $FAILURE_SIM
 	fi
 
-	# catch unhandled errors:
-	echo "Unhandled error for task ${task_nr} for user ${user_id}!"
+	# ------ catch unhandled errors --------
+
+	# find last submission number
+	submission_nrs=($(ls $user_task_path | grep -oP '(?<=Submission)[0-9]+' | sort -nr))
+	submission_nr_last=${submission_nrs[0]}
+
+	# message to tasks.stdout
+	echo "Unhandled simulation error for task ${task_nr} for user ${user_id} for submission ${submission_nr}!" \
+	     "Sent only 'Your submitted behavior file does not behave like specified in the task description.' to user"
+
+	# message to tasks.stderr
+	echo "Unhandled simulation error for task ${task_nr} for user ${user_id} for submission ${submission_nr}!" \
+	     "Sent only 'Your submitted behavior file does not behave like specified in the task description.' to user" 1>&2
+
+	# message to error_msg for user
 	echo "Your submitted behavior file does not behave like specified in the task description." > error_msg
+
 	exit_and_save_results $FAILURE_UNHANDLED
 }
 
+#
+#-------------------------------------------------------------------------------
+#
 
 ############################################################################################################
 # before exiting the simulation, first copy all relevant simulation and log files to the submission folder #
 ############################################################################################################
-
 function exit_and_save_results {
 
 	########################################################################################
@@ -389,18 +465,17 @@ function exit_and_save_results {
 	##############################################################################
 	# depending on point of exit during test phase, save the relevant log files  #
 	##############################################################################
+	touch $user_submission_path/test_results/submission_log
 
 	# Failure: user attached not the correct files
 	if [ $1 = $FAILURE_NOATTACH ]
 	then
-		touch $user_submission_path/test_results/submission_log
 		echo "User has not attached the correct files, so no simulation was started." > $user_submission_path/test_results/submission_log
 		exit $FAILURE
 
 	# Failure: VELS files (not files from user) throw error
 	elif [ $1 = $FAILURE_VELSANALYZE ]
 	then
-		touch $user_submission_path/test_results/submission_log
 		echo "Error while analyzing files which are not from the user, please have a look at the global task error log." > $user_submission_path/test_results/submission_log
 		if [ -f $user_task_path/error_msg ]
 		then
@@ -414,29 +489,25 @@ function exit_and_save_results {
 	# Failure: Analyzing user files throws error
 	elif [ $1 = $FAILURE_USERANALYZE ]
 	then
-		touch $user_submission_path/test_results/submission_log
 		echo "Error while analyzing user files." > $user_submission_path/test_results/submission_log
-		
+
 		if [ -f /tmp/$USER/tmp_Task${task_nr}_User${user_id} ]
 		then
 			src=/tmp/$USER/tmp_Task${task_nr}_User${user_id}
 			tgt=$user_submission_path/test_results/tmp_Task${task_nr}_User${user_id}
 			mv $src $tgt
-
 		fi
 		exit $FAILURE
 
 	# Failure: Elaboration failed. NOT POSSIBLE WITH QUESTASIM
 	#elif [ $1 = $FAILURE_ELABORATE ]
 	#then
-	
 
 	# Failure: Simulation fails (either timeout, user syntax error or wrong behaviour)
 	elif [ $1 = $FAILURE_SIM ]
 	then
-		touch $user_submission_path/test_results/submission_log
 		echo "Simulation failed: either timeout, user syntax error or wrong behaviour." > $user_submission_path/test_results/submission_log
-		
+
 		if [ -f $user_task_path/vsim.log ]
 		then
 			src=$user_task_path/vsim.log
@@ -448,7 +519,6 @@ function exit_and_save_results {
 	# Success
 	elif [ $1 = $SUCCESS_SIM ]
 	then
-		touch $user_submission_path/test_results/submission_log
 		echo "Simulation was successfull, correct solution." > $user_submission_path/test_results/submission_log
 
 		if [ -f $user_task_path/vsim.log ]
@@ -462,7 +532,6 @@ function exit_and_save_results {
         # Failure: Unhandled failure occured
 	elif [ $1 = $FAILURE_UNHANDLED ]
 	then
-		touch $user_submission_path/test_results/submission_log
 		echo "Unhandled error occured" > $user_submission_path/test_results/submission_log
 
 		if [ -f $user_task_path/vsim.log ]
@@ -472,22 +541,13 @@ function exit_and_save_results {
 			mv $src $tgt
 		fi
 
-		if [ -f $user_task_path/error_msg ]
-		then
-			src=/tmp/taskfiles_output_${user_id}_Task${task_nr}.txt
-			tgt=$user_submission_path/test_results/taskfiles_output_${user_id}_Task${task_nr}.txt
-			mv $src $tgt
-		fi
-
 		if [ -f /tmp/$USER/tmp_Task${task_nr}_User${user_id} ]
 		then
 			src=/tmp/$USER/tmp_Task${task_nr}_User${user_id}
 			tgt=$user_submission_path/test_results/tmp_Task${task_nr}_User${user_id}
 			mv $src $tgt
-
 		fi
 
 		exit $FAILURE
 	fi
-	
 }
