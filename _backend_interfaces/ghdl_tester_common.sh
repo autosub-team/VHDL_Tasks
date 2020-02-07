@@ -122,6 +122,25 @@ function prepare_test {
 		# NOTE: this is not a parse and does not cover 2008 multi line
 		# comments, but should work for most cases
 		sed -i 's:--[^"]*$::g' $userfile
+
+		# SECURITY filter
+		# check if certain words are not used (e.g. file_handler to read or write files)
+                # list of words is stored in "illegal_words.txt" in the backend_interface directory
+                # NOTE: whitespaces are also relevant in the txt file
+                if [ -f $backend_interfaces_path/support_files/illegal_words.txt ]
+                then
+                    while IFS="" read -r p || [ -n "$p" ]
+                    do
+                        egrep -ioq "$p" $userfile
+                        RET=$?
+                        if [ "$RET" -eq "$zero" ]
+                        then
+                            echo "Do not use the keyword '$p'. Otherwise I might think that you are trying to be naughty?!" > error_msg
+		            exit $SECURITYALERT
+                        fi
+                    done <$backend_interfaces_path/support_files/illegal_words.txt
+                fi
+
 	done
 
 	#------ COPY NEEDED FILES FOR TEST ------
